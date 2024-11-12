@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState,useEffect } from 'react';
 import { useStore } from '../../store/useStore';
-import { 
+import {
   Plus,
   Edit2,
   Trash2,
@@ -9,37 +9,68 @@ import {
   User
 } from 'lucide-react';
 import { User as UserType } from '../../types';
+import { set } from 'date-fns';
 
 export const TeamManagement = () => {
   const { selectedProject, updateProject } = useStore();
   const [isCreating, setIsCreating] = useState(false);
   const [editingUser, setEditingUser] = useState<UserType | null>(null);
 
+  useEffect(() => {
+    const storedProject = localStorage.getItem('selectedProject');
+    if (storedProject) {
+      updateProject(JSON.parse(storedProject));
+      console.log("InfomacionLocal");
+    }
+  }, [updateProject]);
+
+  useEffect(() => {
+    if (selectedProject) {
+      // Guarda el proyecto en localStorage cada vez que se actualiza
+      localStorage.setItem('selectedProject', JSON.stringify(selectedProject));
+      console.log("Seactualizo");
+    }
+  }, [selectedProject]);
+
+
   if (!selectedProject) return null;
 
+
   const handleAddUser = (user: UserType) => {
-    updateProject({
-      ...selectedProject,
-      team: [...selectedProject.team, user]
-    });
-    setIsCreating(false);
+    if (!selectedProject.team.some(u => u.id === user.id)) {
+      updateProject({
+        ...selectedProject,
+        team: [...selectedProject.team, user]
+      });
+      setIsCreating(false);
+    }
   };
-
+  
   const handleUpdateUser = (updatedUser: UserType) => {
-    updateProject({
-      ...selectedProject,
-      team: selectedProject.team.map(user =>
-        user.id === updatedUser.id ? updatedUser : user
-      )
-    });
-    setEditingUser(null);
+    const updatedTeam = selectedProject.team.map(user =>
+      user.id === updatedUser.id ? updatedUser : user
+    );
+  
+    // Only update if there's a change in the team
+    if (JSON.stringify(updatedTeam) !== JSON.stringify(selectedProject.team)) {
+      updateProject({
+        ...selectedProject,
+        team: updatedTeam
+      });
+      setEditingUser(null);
+    }
   };
-
+  
   const handleDeleteUser = (userId: string) => {
-    updateProject({
-      ...selectedProject,
-      team: selectedProject.team.filter(user => user.id !== userId)
-    });
+    const updatedTeam = selectedProject.team.filter(user => user.id !== userId);
+  
+    // Only update if there's a change in the team
+    if (updatedTeam.length !== selectedProject.team.length) {
+      updateProject({
+        ...selectedProject,
+        team: updatedTeam
+      });
+    }
   };
 
   return (
@@ -55,7 +86,7 @@ export const TeamManagement = () => {
         </button>
       </div>
 
-      <div className="grid gap-4">
+      <div className="grid gap-4 mt-6">
         {selectedProject.team.map(user => (
           <div
             key={user.id}
@@ -101,6 +132,7 @@ export const TeamManagement = () => {
         ))}
       </div>
 
+      <div>
       {(isCreating || editingUser) && (
         <UserForm
           user={editingUser}
@@ -117,7 +149,9 @@ export const TeamManagement = () => {
           }}
         />
       )}
+      </div>
     </div>
+    
   );
 };
 
@@ -132,7 +166,7 @@ const UserForm = ({
 }) => {
   const [name, setName] = useState(user?.name || '');
   const [email, setEmail] = useState(user?.email || '');
-  const [role, setRole] = useState<UserType['role']>(user?.role || 'developer');
+  const [role, setRole] = useState<UserType['role']>(user?.role || 'guest');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -159,7 +193,13 @@ const UserForm = ({
             <input
               type="text"
               value={name}
-              onChange={(e) => setName(e.target.value)}
+              onChange={(e) => {
+                const value = e.target.value;
+                // Expresión regular para permitir solo letras, espacios y tildes, con un máximo de 30 caracteres
+                if (/^[A-Za-zÀ-ÿ\u00f1\u00d1\s]{0,30}$/.test(value)) {
+                  setName(value);
+                }
+              }}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               required
             />
@@ -172,6 +212,12 @@ const UserForm = ({
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              onBlur={() => {
+                // Validación para asegurar que el email termine en "@PJM.com"
+                if (!/^[\w.-]+@PJM\.com$/.test(email)) {
+                  setEmail("");
+                }
+              }}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               required
             />
@@ -184,9 +230,12 @@ const UserForm = ({
               value={role}
               onChange={(e) => setRole(e.target.value as UserType['role'])}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              required
             >
+              <option value="" >
+                Seleccione una opción
+              </option>
               <option value="admin">Administrador</option>
-              <option value="scrum_master">Scrum Master</option>
               <option value="developer">Desarrollador</option>
               <option value="client">Cliente</option>
             </select>

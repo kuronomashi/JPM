@@ -28,7 +28,7 @@ export interface Sprint {
   startDate: Date;
   endDate: Date;
   tasks: Task[];
-  status: 'planning' | 'active' | 'completed';
+  status: 'planned' | 'active' | 'completed';
 }
 
 export interface Project {

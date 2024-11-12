@@ -1,5 +1,8 @@
 import React from 'react';
 import { useStore } from '../store/useStore';
+import { useNavigate } from 'react-router-dom';  // Importar useNavigate
+
+
 import { 
   Layout, 
   Users, 
@@ -62,7 +65,11 @@ export const HomePage = () => {
       color: "from-purple-500 to-purple-600"
     }
   ];
+  const navigate = useNavigate();  // Usar useNavigate
 
+  const handleRedirect = (link: string) => {
+    navigate(`/${link}`);  // Redirigir a la ruta especificada
+  };
   return (
     <div className="space-y-8 animate-fadeIn">
       {/* Hero Section */}
@@ -100,7 +107,7 @@ export const HomePage = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {quickActions.map((action, index) => (
           <button
-            
+          onClick={() => handleRedirect(action.link)}
             key={index}
             className="bg-white p-6 rounded-xl shadow-sm hover:shadow-lg transition-all group hover-card"
           >

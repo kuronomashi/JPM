@@ -1,5 +1,7 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useStore } from '../store/useStore';
+import { useNavigate,useLocation  } from 'react-router-dom';  // Importa useNavigate
+
 import {
   LayoutDashboard,
   Users,
@@ -19,42 +21,59 @@ interface NavigationProps {
 
 export const Navigation = ({ activeView, onViewChange }: NavigationProps) => {
   const { currentUser, setCurrentUser } = useStore();
-
+  const navigate = useNavigate(); 
+  const location = useLocation();
+  
   const handleLogout = () => {
+    localStorage.removeItem('currentUser');
     setCurrentUser(null);
+    navigate('/login');
   };
   const menuItems = [
     {
       id: 'dashboard',
       label: 'Dashboard',
       icon: <LayoutDashboard className="w-5 h-5" />,
-      roles: ['admin', 'scrum_master', 'developer', 'client']
+      roles: ['admin', 'scrum_master', 'developer', 'client'],
+      path: '/' // Añadir las rutas correspondientes
     },
     {
       id: 'projects',
       label: 'Proyectos',
       icon: <Briefcase className="w-5 h-5" />,
-      roles: ['admin', 'scrum_master', 'developer']
+      roles: ['admin', 'scrum_master', 'developer'],
+      path: '/projects' // Ruta para proyectos
     },
     {
       id: 'sprints',
       label: 'Sprints',
       icon: <Timer className="w-5 h-5" />,
-      roles: ['admin', 'scrum_master', 'developer']
+      roles: ['admin', 'scrum_master', 'developer'],
+      path: '/sprints' // Ruta para sprints
     },
     {
       id: 'team',
       label: 'Equipo',
       icon: <Users className="w-5 h-5" />,
-      roles: ['admin', 'scrum_master']
+      roles: ['admin', 'scrum_master'],
+      path: '/team' // Ruta para equipo
     },
     {
       id: 'settings',
       label: 'Configuración',
       icon: <Settings className="w-5 h-5" />,
-      roles: ['admin']
+      roles: ['admin'],
+      path: '/settings' // Ruta para configuración
     }
   ];
+
+  useEffect(() => {
+    const currentPath = location.pathname;  // Obtenemos la ruta actual
+    const activeItem = menuItems.find(item => item.path === currentPath);
+    if (activeItem) {
+      onViewChange(activeItem.id);  // Actualizamos el estado activeView
+    }
+  }, [location, onViewChange]);
 
   return (
     <nav className="bg-white shadow-sm">
@@ -65,7 +84,7 @@ export const Navigation = ({ activeView, onViewChange }: NavigationProps) => {
             <div className="bg-primary-600 p-2 rounded-lg">
               <LayoutDashboard className="w-5 h-5 text-white" />
             </div>
-            <span className="font-semibold text-gray-900">Trello 2</span>
+            <span className="font-semibold text-gray-900">JPM</span>
           </div>
 
           {/* Main Navigation */}
@@ -75,7 +94,10 @@ export const Navigation = ({ activeView, onViewChange }: NavigationProps) => {
               .map(item => (
                 <button
                   key={item.id}
-                  onClick={() => onViewChange(item.id)}
+                  onClick={() => {
+                    onViewChange(item.id);
+                    navigate(item.path); // Navegar a la ruta correspondiente
+                  }}
                   className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                     activeView === item.id
                       ? 'bg-primary-50 text-primary-600'

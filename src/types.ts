@@ -2,7 +2,7 @@ export interface User {
   id: string;
   name: string;
   email: string;
-  role: 'admin' | 'scrum_master' | 'developer' | 'client';
+  role: 'admin' | 'scrum_master' | 'developer' | 'client' | 'guest';
   avatar: string;
 }
 

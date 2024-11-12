@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState,useEffect } from 'react';
 import { useStore } from '../store/useStore';
 import { 
   Calendar,
@@ -15,6 +15,22 @@ export const SprintList = () => {
   const { selectedProject, updateProject } = useStore();
   const [isCreating, setIsCreating] = useState(false);
   const [editingSprint, setEditingSprint] = useState<Sprint | null>(null);
+
+  useEffect(() => {
+    // Recupera el proyecto desde localStorage cuando se monta el componente
+    const savedProject = localStorage.getItem('selectedProject');
+    if (savedProject) {
+      updateProject(JSON.parse(savedProject));
+    }
+  }, [updateProject]);
+
+  useEffect(() => {
+    // Guarda el proyecto en localStorage cada vez que se actualiza
+    if (selectedProject) {
+      localStorage.setItem('selectedProject', JSON.stringify(selectedProject));
+    }
+  }, [selectedProject]);
+
 
   if (!selectedProject) return null;
 
@@ -183,7 +199,7 @@ const SprintForm = ({
       name,
       startDate: new Date(startDate),
       endDate: new Date(endDate),
-      status: sprint?.status || 'planning',
+      status: sprint?.status || "planned",
       tasks: sprint?.tasks || []
     });
   };

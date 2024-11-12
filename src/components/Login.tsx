@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect  } from 'react';
 import { useStore } from '../store/useStore';
 import { User } from '../types';
 import { LogIn } from 'lucide-react';
@@ -14,17 +14,25 @@ export const Login = () => {
       const demoUser: User = {
         id: '1',
         name: 'Miguel Angel',
-        email: email || 'john@example.com',
+        email: email || 'miguelal.cantorc@ecci.edu.co',
         role: 'scrum_master',
         avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(email.split('@')[0])}`
       };
   
       setCurrentUser(demoUser);
+      localStorage.setItem('currentUser', JSON.stringify(demoUser));
     }else{
       alert("Invalid Email or Password");
     }
     
   };
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem('currentUser');
+    if (storedUser) {
+      setCurrentUser(JSON.parse(storedUser));
+    }
+  }, [setCurrentUser]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center p-4">
